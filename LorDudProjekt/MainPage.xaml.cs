@@ -44,7 +44,7 @@ namespace LorDudProjekt
 
             return jsonResponse;
         }
-        private async Task<string> GetBook(bool random)
+        private async Task<string> GetBook(int chosenBook)
         {
 
             booksList.Clear();
@@ -54,7 +54,7 @@ namespace LorDudProjekt
             {
                 booksList.Add(book.abbreviation);
             }
-            if (random)
+            if (chosenBook < 0)
             {
                 Random rnd = new Random();
                 int bookNum = rnd.Next(books.books.Length);
@@ -64,7 +64,7 @@ namespace LorDudProjekt
             }
             else
             {
-                string abbrev = books.books[0].abbreviation; 
+                string abbrev = books.books[chosenBook].abbreviation; 
                 pickerBook.SelectedItem = abbrev;
                 return abbrev;
             }
@@ -92,6 +92,7 @@ namespace LorDudProjekt
             }
             else
             {
+                pickerChapter.SelectedItem = chosenChapter;
                 return chosenChapter; // Pierwszy rozdział
             }
 
@@ -144,7 +145,7 @@ namespace LorDudProjekt
         }
         private async void GetRandomBibleVerse()
         {
-            string book = await GetBook(true);
+            string book = await GetBook(-1);
 
             string chapter = await GetChapter(book, true);
 
@@ -152,11 +153,11 @@ namespace LorDudProjekt
 
             blck_cite.Text = verses;
         }
-        private async void GetBibleVerse(string bookChoice, string chapterChoice, string verseStart, string verseEnd)
+        private async void GetBibleVerse(int bookChoice, string chapterChoice, string verseStart, string verseEnd)
         {
-            string book = await GetBook(false);
-            string chapter = await GetChapter(bookChoice, false, chapterChoice);
-            string verses = await GetVerses(bookChoice, chapter, false, verseStart, verseEnd);
+            string book = await GetBook(bookChoice);
+            string chapter = await GetChapter(book, false, chapterChoice);
+            string verses = await GetVerses(book, chapter, false, verseStart, verseEnd);
             blck_cite.Text = verses;
         }
 
@@ -167,15 +168,26 @@ namespace LorDudProjekt
 
         private async void btnSelect_ClickedAsync(object sender, EventArgs e)
         {
-
-            string book = await GetBook(false);
-            string bookChoice = pickerBook.SelectedItem.ToString();
+            int bookChoice = pickerBook.SelectedIndex;
+            string book = await GetBook(bookChoice);
             string chapter = pickerChapter.SelectedItem.ToString();
             string verseStart = pickerStart.SelectedItem.ToString() ?? "1";
             string verseEnd = pickerEnd.SelectedItem.ToString() ?? "2";
 
             GetBibleVerse(bookChoice, chapter, verseStart, verseEnd);
         }
+
+        private void pickerBook_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private async void pickerChapter_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            int bookChoice = pickerBook.SelectedIndex; 
+            await GetBook(bookChoice);
+        }
+
     }
 
 }
